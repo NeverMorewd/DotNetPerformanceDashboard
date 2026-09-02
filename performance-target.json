@@ -1,23 +1,23 @@
 {
   "$schema": "./schemas/performance-target.schema.json",
   "target": {
-    "repository": "NeverMorewd/Draft.SidebarDiagnostics.Avalonia",
+    "repository": "owner/repository",
     "ref": "main",
-    "projectPath": "src/SidebarDiagnostics.App.csproj",
-    "reportLabel": "Sidebar Diagnostics Native AOT"
+    "projectPath": "src/Application.csproj",
+    "reportLabel": ".NET Application"
   },
   "platforms": {
     "Windows": {
       "runtimeIdentifier": "win-x64",
-      "executablePath": "SidebarDiagnostics.App.exe"
+      "executablePath": "Application.exe"
     },
     "Linux": {
       "runtimeIdentifier": "linux-x64",
-      "executablePath": "SidebarDiagnostics.App"
+      "executablePath": "Application"
     },
     "macOS": {
       "runtimeIdentifier": "osx-x64",
-      "executablePath": "SidebarDiagnostics.App"
+      "executablePath": "Application"
     }
   },
   "publish": {

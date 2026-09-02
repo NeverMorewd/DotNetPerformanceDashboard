@@ -20,7 +20,7 @@ Use **Use this template → Create a new repository** instead of forking this re
 Each dashboard repository is intentionally configured for one target repository. To measure multiple applications, create one repository from this template for each target—for example, `AppA.Performance` and `AppB.Performance`. Every dashboard then has independent workflow history, report artifacts, retention settings, runners, and GitHub Pages deployment.
 
 1. Select **Use this template → Create a new repository** on this repository's GitHub page.
-2. Edit [`performance-target.json`](performance-target.json) for the target repository, project, platforms, and measurement policy.
+2. Edit [`performance-target.json`](performance-target.json) for the target repository, project, platforms, and measurement policy. Set `target.repository` to GitHub's `owner/repository` identifier, not a full URL.
 3. Register dedicated self-hosted runners with `self-hosted`, `metric-test`, and the matching `Windows`, `Linux`, or `macOS` labels.
 4. Create a protected `performance-lab` Environment. Require approval when personal or shared machines execute target code.
 5. In **Settings → Pages**, select **GitHub Actions** as the source.
@@ -28,7 +28,7 @@ Each dashboard repository is intentionally configured for one target repository.
 7. Run **Run performance benchmark** with **quick validation** enabled.
 8. Review the artifact and Pages deployment before running the full configured benchmark.
 
-No secret is needed for a public target. For a private target, create `TARGET_REPOSITORY_TOKEN` with fine-grained, read-only Contents access to that repository. Do not use an administrator token.
+The target may be your own repository or any public GitHub repository whose license and usage terms permit the intended build and analysis. No secret is needed for a public target. For a private target, create `TARGET_REPOSITORY_TOKEN` with fine-grained, read-only Contents access to that repository. Do not use an administrator token.
 
 Repositories created from a template are independent and do not automatically receive later template changes. DotNetPerformanceLab upgrades remain reviewable because the reusable workflow commit pins are managed by Dependabot; structural changes to this dashboard template must be synchronized deliberately.
 
@@ -36,7 +36,7 @@ Repositories created from a template are independent and do not automatically re
 
 `performance-target.json` is the only target-specific file. Paths are relative to the checked-out target repository and may not contain parent traversal segments.
 
-The default configuration profiles Sidebar Diagnostics and demonstrates all three operating systems. Set `schedule.enabled` to `true` only after every listed runner is available. Scheduled workflows execute code from the configured target ref, so use a protected branch, immutable tag, or commit.
+The checked-in configuration is a neutral template and must be customized before running a benchmark. It demonstrates all three operating systems without referring to a real target repository. Set `schedule.enabled` to `true` only after every listed runner is available. Scheduled workflows execute code from the configured target ref, including third-party code, so review the target and use a protected branch, immutable tag, or commit.
 
 ## Workflows
 
