@@ -1,6 +1,6 @@
 # .NET Performance Dashboard
 
-A forkable GitHub Actions and GitHub Pages dashboard for repeatable cross-platform .NET performance analysis. The repository contains configuration and orchestration only; collection and report generation are provided by [DotNetPerformanceLab](https://github.com/NeverMorewd/DotNetPerformanceLab).
+A reusable GitHub repository template for repeatable cross-platform .NET performance analysis with GitHub Actions and GitHub Pages. The repository contains configuration and orchestration only; collection and report generation are provided by [DotNetPerformanceLab](https://github.com/NeverMorewd/DotNetPerformanceLab).
 
 ## What it provides
 
@@ -13,9 +13,13 @@ A forkable GitHub Actions and GitHub Pages dashboard for repeatable cross-platfo
 - A GitHub Pages history rebuilt from unexpired workflow artifacts.
 - A single reviewed target configuration with JSON Schema editor support.
 
-## Fork setup
+## Create a dashboard
 
-1. Fork or create a repository from this template.
+Use **Use this template → Create a new repository** instead of forking this repository. GitHub normally permits only one fork of an upstream repository per account, while a template can create any number of independent dashboard repositories.
+
+Each dashboard repository is intentionally configured for one target repository. To measure multiple applications, create one repository from this template for each target—for example, `AppA.Performance` and `AppB.Performance`. Every dashboard then has independent workflow history, report artifacts, retention settings, runners, and GitHub Pages deployment.
+
+1. Select **Use this template → Create a new repository** on this repository's GitHub page.
 2. Edit [`performance-target.json`](performance-target.json) for the target repository, project, platforms, and measurement policy.
 3. Register dedicated self-hosted runners with `self-hosted`, `metric-test`, and the matching `Windows`, `Linux`, or `macOS` labels.
 4. Create a protected `performance-lab` Environment. Require approval when personal or shared machines execute target code.
@@ -25,6 +29,8 @@ A forkable GitHub Actions and GitHub Pages dashboard for repeatable cross-platfo
 8. Review the artifact and Pages deployment before running the full configured benchmark.
 
 No secret is needed for a public target. For a private target, create `TARGET_REPOSITORY_TOKEN` with fine-grained, read-only Contents access to that repository. Do not use an administrator token.
+
+Repositories created from a template are independent and do not automatically receive later template changes. DotNetPerformanceLab upgrades remain reviewable because the reusable workflow commit pins are managed by Dependabot; structural changes to this dashboard template must be synchronized deliberately.
 
 ## Configuration
 
