@@ -1,0 +1,81 @@
+name: Run scheduled performance benchmarks
+
+on:
+  schedule:
+    - cron: '23 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: scheduled-benchmarks
+  cancel-in-progress: false
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    outputs:
+      configuration: ${{ steps.configuration.outputs.configuration }}
+      enabled: ${{ steps.configuration.outputs.enabled }}
+      platforms: ${{ steps.configuration.outputs.platforms }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - id: configuration
+        name: Validate target configuration
+        shell: pwsh
+        run: |
+          ./scripts/Test-TargetConfiguration.ps1 -WriteGitHubOutput
+          $configuration = Get-Content -LiteralPath performance-target.json -Raw | ConvertFrom-Json
+          "enabled=$($configuration.schedule.enabled.ToString().ToLowerInvariant())" | Add-Content -LiteralPath $env:GITHUB_OUTPUT
+          "platforms=$($configuration.schedule.platforms | ConvertTo-Json -Compress -AsArray)" | Add-Content -LiteralPath $env:GITHUB_OUTPUT
+
+  profile:
+    if: ${{ needs.configuration.outputs.enabled == 'true' }}
+    needs: configuration
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(needs.configuration.outputs.platforms) }}
+    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/profile-repository.yml@9d2dc0a9c5fa97c437298e2ed058b7815b90cca1
+    with:
+      target-repository: ${{ fromJSON(needs.configuration.outputs.configuration).target.repository }}
+      target-ref: ${{ fromJSON(needs.configuration.outputs.configuration).target.ref }}
+      platform: ${{ matrix.platform }}
+      project-path: ${{ fromJSON(needs.configuration.outputs.configuration).target.projectPath }}
+      runtime-identifier: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[matrix.platform].runtimeIdentifier }}
+      executable-path: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[matrix.platform].executablePath }}
+      report-label: ${{ fromJSON(needs.configuration.outputs.configuration).target.reportLabel }}
+      configuration: ${{ fromJSON(needs.configuration.outputs.configuration).publish.configuration }}
+      self-contained: ${{ fromJSON(needs.configuration.outputs.configuration).publish.selfContained }}
+      publish-aot: ${{ fromJSON(needs.configuration.outputs.configuration).publish.nativeAot }}
+      publish-trimmed: ${{ fromJSON(needs.configuration.outputs.configuration).publish.trimmed }}
+      locked-restore: ${{ fromJSON(needs.configuration.outputs.configuration).publish.lockedRestore }}
+      warmup-seconds: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.warmupSeconds }}
+      measurement-seconds: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.measurementSeconds }}
+      sample-interval-ms: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.sampleIntervalMilliseconds }}
+      cooldown-seconds: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.cooldownSeconds }}
+      iterations: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.iterations }}
+      collect-counters: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.collectCounters }}
+      counter-duration-seconds: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.counterDurationSeconds }}
+      meters-json: ${{ toJSON(fromJSON(needs.configuration.outputs.configuration).measurement.meters) }}
+      collect-trace: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.collectTrace }}
+      trace-duration-seconds: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.traceDurationSeconds }}
+      artifact-retention-days: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.artifactRetentionDays }}
+      toolkit-ref: 9d2dc0a9c5fa97c437298e2ed058b7815b90cca1
+    secrets:
+      target-repository-token: ${{ secrets.TARGET_REPOSITORY_TOKEN }}
+
+  pages:
+    if: ${{ always() && needs.profile.result == 'success' }}
+    needs: profile
+    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/deploy-pages.yml@9d2dc0a9c5fa97c437298e2ed058b7815b90cca1
+    with:
+      history-days: 30
+      maximum-runs: 50
+      toolkit-ref: 9d2dc0a9c5fa97c437298e2ed058b7815b90cca1

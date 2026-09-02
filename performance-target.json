@@ -1,0 +1,53 @@
+{
+  "$schema": "./schemas/performance-target.schema.json",
+  "target": {
+    "repository": "NeverMorewd/Draft.SidebarDiagnostics.Avalonia",
+    "ref": "main",
+    "projectPath": "src/SidebarDiagnostics.App.csproj",
+    "reportLabel": "Sidebar Diagnostics Native AOT"
+  },
+  "platforms": {
+    "Windows": {
+      "runtimeIdentifier": "win-x64",
+      "executablePath": "SidebarDiagnostics.App.exe"
+    },
+    "Linux": {
+      "runtimeIdentifier": "linux-x64",
+      "executablePath": "SidebarDiagnostics.App"
+    },
+    "macOS": {
+      "runtimeIdentifier": "osx-x64",
+      "executablePath": "SidebarDiagnostics.App"
+    }
+  },
+  "publish": {
+    "configuration": "Release",
+    "selfContained": true,
+    "nativeAot": true,
+    "trimmed": true,
+    "lockedRestore": true
+  },
+  "measurement": {
+    "warmupSeconds": 60,
+    "measurementSeconds": 300,
+    "sampleIntervalMilliseconds": 1000,
+    "cooldownSeconds": 10,
+    "iterations": 3,
+    "collectCounters": true,
+    "counterDurationSeconds": 30,
+    "collectTrace": false,
+    "traceDurationSeconds": 30,
+    "artifactRetentionDays": 30,
+    "meters": [
+      "System.Net.Http",
+      "System.Net.NameResolution",
+      "System.Net.Sockets"
+    ]
+  },
+  "schedule": {
+    "enabled": false,
+    "platforms": [
+      "Windows"
+    ]
+  }
+}

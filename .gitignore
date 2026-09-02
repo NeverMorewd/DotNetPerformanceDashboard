@@ -1,0 +1,6 @@
+.idea/
+.vscode/
+artifacts/
+TestResults/
+*.user
+*.suo

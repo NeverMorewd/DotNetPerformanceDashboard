@@ -1,0 +1,21 @@
+name: Validate dashboard configuration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Validate target configuration
+        shell: pwsh
+        run: ./scripts/Test-TargetConfiguration.ps1
