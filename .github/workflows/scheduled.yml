@@ -42,7 +42,7 @@ jobs:
       fail-fast: false
       matrix:
         platform: ${{ fromJSON(needs.configuration.outputs.platforms) }}
-    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/profile-repository.yml@60d8baf1f537e516428414a358542a4185f95fe7
+    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/profile-repository.yml@561ba257288e950118be2bee5840e4e490b48fb1
     with:
       target-repository: ${{ fromJSON(needs.configuration.outputs.configuration).target.repository }}
       target-ref: ${{ fromJSON(needs.configuration.outputs.configuration).target.ref }}
@@ -51,6 +51,7 @@ jobs:
       runtime-identifier: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[matrix.platform].runtimeIdentifier }}
       executable-path: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[matrix.platform].executablePath }}
       report-label: ${{ fromJSON(needs.configuration.outputs.configuration).target.reportLabel }}
+      interactive-report-url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
       configuration: ${{ fromJSON(needs.configuration.outputs.configuration).publish.configuration }}
       self-contained: ${{ fromJSON(needs.configuration.outputs.configuration).publish.selfContained }}
       publish-aot: ${{ fromJSON(needs.configuration.outputs.configuration).publish.nativeAot }}
@@ -67,15 +68,15 @@ jobs:
       collect-trace: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.collectTrace }}
       trace-duration-seconds: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.traceDurationSeconds }}
       artifact-retention-days: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.artifactRetentionDays }}
-      toolkit-ref: 60d8baf1f537e516428414a358542a4185f95fe7
+      toolkit-ref: 561ba257288e950118be2bee5840e4e490b48fb1
     secrets:
       target-repository-token: ${{ secrets.TARGET_REPOSITORY_TOKEN }}
 
   pages:
     if: ${{ always() && needs.profile.result == 'success' }}
     needs: profile
-    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/deploy-pages.yml@60d8baf1f537e516428414a358542a4185f95fe7
+    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/deploy-pages.yml@561ba257288e950118be2bee5840e4e490b48fb1
     with:
       history-days: 30
       maximum-runs: 50
-      toolkit-ref: 60d8baf1f537e516428414a358542a4185f95fe7
+      toolkit-ref: 561ba257288e950118be2bee5840e4e490b48fb1
