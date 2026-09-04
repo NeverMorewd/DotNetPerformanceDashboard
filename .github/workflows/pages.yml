@@ -17,8 +17,8 @@ concurrency:
 
 jobs:
   pages:
-    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/deploy-pages.yml@60d8baf1f537e516428414a358542a4185f95fe7
+    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/deploy-pages.yml@561ba257288e950118be2bee5840e4e490b48fb1
     with:
       history-days: 30
       maximum-runs: 50
-      toolkit-ref: 60d8baf1f537e516428414a358542a4185f95fe7
+      toolkit-ref: 561ba257288e950118be2bee5840e4e490b48fb1
