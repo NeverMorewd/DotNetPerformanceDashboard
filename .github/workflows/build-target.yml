@@ -91,7 +91,7 @@ jobs:
           $project = (Resolve-Path -LiteralPath $env:TARGET_PROJECT).Path
           $output = Join-Path $env:RUNNER_TEMP 'performance-target'
 
-          $restoreArguments = @('restore', $project, '--runtime', $env:TARGET_RUNTIME)
+          $restoreArguments = @('restore', $project)
           if ([bool]::Parse($env:TARGET_LOCKED_RESTORE)) {
             $restoreArguments += '--locked-mode'
           }
