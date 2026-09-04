@@ -8,19 +8,23 @@
   },
   "platforms": {
     "Windows": {
+      "buildRunner": "windows-latest",
       "runtimeIdentifier": "win-x64",
       "executablePath": "Application.exe"
     },
     "Linux": {
+      "buildRunner": "ubuntu-latest",
       "runtimeIdentifier": "linux-x64",
       "executablePath": "Application"
     },
     "macOS": {
+      "buildRunner": "macos-latest",
       "runtimeIdentifier": "osx-x64",
       "executablePath": "Application"
     }
   },
   "publish": {
+    "dotnetVersion": "10.0.x",
     "configuration": "Release",
     "selfContained": true,
     "nativeAot": true,
