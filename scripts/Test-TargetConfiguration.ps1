@@ -28,6 +28,8 @@ Assert-Condition ($configuration.target.repository -match '^[A-Za-z0-9_.-]+/[A-Z
 Assert-Condition (-not [string]::IsNullOrWhiteSpace($configuration.target.ref)) "target.ref is required."
 Assert-RelativePath $configuration.target.projectPath "target.projectPath"
 Assert-Condition (-not [string]::IsNullOrWhiteSpace($configuration.target.reportLabel)) "target.reportLabel is required."
+Assert-Condition (-not [string]::IsNullOrWhiteSpace($configuration.publish.dotnetVersion)) "publish.dotnetVersion is required."
+Assert-Condition ($configuration.publish.dotnetVersion -match '^(8|9|10)\.0(?:\.x|\.\d+)(?:-[0-9A-Za-z.-]+)?$') "publish.dotnetVersion must select .NET 8, 9, or 10."
 
 $allowedPlatforms = @('Windows', 'Linux', 'macOS')
 $configuredPlatforms = @($configuration.platforms.PSObject.Properties.Name)
@@ -35,6 +37,7 @@ Assert-Condition ($configuredPlatforms.Count -gt 0) "At least one platform is re
 foreach ($platform in $configuredPlatforms) {
     Assert-Condition ($allowedPlatforms -contains $platform) "Unsupported platform: $platform."
     $settings = $configuration.platforms.$platform
+    Assert-Condition (-not [string]::IsNullOrWhiteSpace($settings.buildRunner)) "platforms.$platform.buildRunner is required."
     Assert-Condition (-not [string]::IsNullOrWhiteSpace($settings.runtimeIdentifier)) "platforms.$platform.runtimeIdentifier is required."
     Assert-RelativePath $settings.executablePath "platforms.$platform.executablePath"
 }

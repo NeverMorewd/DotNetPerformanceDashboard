@@ -48,23 +48,35 @@ jobs:
         shell: pwsh
         run: ./scripts/Test-TargetConfiguration.ps1 -WriteGitHubOutput
 
-  profile:
+  build:
     needs: configuration
-    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/profile-repository.yml@561ba257288e950118be2bee5840e4e490b48fb1
+    uses: ./.github/workflows/build-target.yml
     with:
       target-repository: ${{ fromJSON(needs.configuration.outputs.configuration).target.repository }}
       target-ref: ${{ inputs.target-ref || fromJSON(needs.configuration.outputs.configuration).target.ref }}
-      platform: ${{ inputs.platform }}
       project-path: ${{ fromJSON(needs.configuration.outputs.configuration).target.projectPath }}
+      platform: ${{ inputs.platform }}
+      runner: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[inputs.platform].buildRunner }}
       runtime-identifier: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[inputs.platform].runtimeIdentifier }}
-      executable-path: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[inputs.platform].executablePath }}
-      report-label: ${{ fromJSON(needs.configuration.outputs.configuration).target.reportLabel }}
-      interactive-report-url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+      dotnet-version: ${{ fromJSON(needs.configuration.outputs.configuration).publish.dotnetVersion }}
       configuration: ${{ fromJSON(needs.configuration.outputs.configuration).publish.configuration }}
       self-contained: ${{ fromJSON(needs.configuration.outputs.configuration).publish.selfContained }}
       publish-aot: ${{ fromJSON(needs.configuration.outputs.configuration).publish.nativeAot }}
       publish-trimmed: ${{ fromJSON(needs.configuration.outputs.configuration).publish.trimmed }}
       locked-restore: ${{ fromJSON(needs.configuration.outputs.configuration).publish.lockedRestore }}
+      artifact-name: performance-target-${{ inputs.platform }}-${{ github.run_id }}-${{ github.run_attempt }}
+    secrets:
+      target-repository-token: ${{ secrets.TARGET_REPOSITORY_TOKEN }}
+
+  profile:
+    needs: [configuration, build]
+    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/profile-artifact.yml@d1410993f8d93bf5a2b768e2c8b4b95885f732c7
+    with:
+      platform: ${{ inputs.platform }}
+      artifact-name: performance-target-${{ inputs.platform }}-${{ github.run_id }}-${{ github.run_attempt }}
+      executable-path: ${{ fromJSON(needs.configuration.outputs.configuration).platforms[inputs.platform].executablePath }}
+      report-label: ${{ fromJSON(needs.configuration.outputs.configuration).target.reportLabel }}
+      interactive-report-url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
       warmup-seconds: ${{ inputs.quick-validation && 5 || fromJSON(needs.configuration.outputs.configuration).measurement.warmupSeconds }}
       measurement-seconds: ${{ inputs.quick-validation && 30 || fromJSON(needs.configuration.outputs.configuration).measurement.measurementSeconds }}
       sample-interval-ms: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.sampleIntervalMilliseconds }}
@@ -76,14 +88,12 @@ jobs:
       collect-trace: ${{ inputs.collect-trace || fromJSON(needs.configuration.outputs.configuration).measurement.collectTrace }}
       trace-duration-seconds: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.traceDurationSeconds }}
       artifact-retention-days: ${{ fromJSON(needs.configuration.outputs.configuration).measurement.artifactRetentionDays }}
-      toolkit-ref: 561ba257288e950118be2bee5840e4e490b48fb1
-    secrets:
-      target-repository-token: ${{ secrets.TARGET_REPOSITORY_TOKEN }}
+      toolkit-ref: d1410993f8d93bf5a2b768e2c8b4b95885f732c7
 
   pages:
     needs: profile
-    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/deploy-pages.yml@561ba257288e950118be2bee5840e4e490b48fb1
+    uses: NeverMorewd/DotNetPerformanceLab/.github/workflows/deploy-pages.yml@d1410993f8d93bf5a2b768e2c8b4b95885f732c7
     with:
       history-days: 30
       maximum-runs: 50
-      toolkit-ref: 561ba257288e950118be2bee5840e4e490b48fb1
+      toolkit-ref: d1410993f8d93bf5a2b768e2c8b4b95885f732c7

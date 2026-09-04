@@ -1,0 +1,125 @@
+name: Build performance target
+
+on:
+  workflow_call:
+    inputs:
+      target-repository:
+        required: true
+        type: string
+      target-ref:
+        required: true
+        type: string
+      project-path:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+      runner:
+        description: GitHub-hosted runner label used to build the target.
+        required: true
+        type: string
+      runtime-identifier:
+        required: true
+        type: string
+      dotnet-version:
+        required: true
+        type: string
+      configuration:
+        required: true
+        type: string
+      self-contained:
+        required: true
+        type: boolean
+      publish-aot:
+        required: true
+        type: boolean
+      publish-trimmed:
+        required: true
+        type: boolean
+      locked-restore:
+        required: true
+        type: boolean
+      artifact-name:
+        required: true
+        type: string
+    secrets:
+      target-repository-token:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Validate platform
+        shell: pwsh
+        env:
+          TARGET_PLATFORM: ${{ inputs.platform }}
+        run: |
+          if ($env:TARGET_PLATFORM -notin @('Windows', 'Linux', 'macOS')) {
+            throw "Unsupported platform: $env:TARGET_PLATFORM"
+          }
+
+      - name: Checkout target repository
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ inputs.target-repository }}
+          ref: ${{ inputs.target-ref }}
+          token: ${{ secrets.target-repository-token || github.token }}
+          persist-credentials: false
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Restore and publish target application
+        shell: pwsh
+        env:
+          TARGET_PROJECT: ${{ inputs.project-path }}
+          TARGET_RUNTIME: ${{ inputs.runtime-identifier }}
+          TARGET_CONFIGURATION: ${{ inputs.configuration }}
+          TARGET_SELF_CONTAINED: ${{ inputs.self-contained }}
+          TARGET_PUBLISH_AOT: ${{ inputs.publish-aot }}
+          TARGET_PUBLISH_TRIMMED: ${{ inputs.publish-trimmed }}
+          TARGET_LOCKED_RESTORE: ${{ inputs.locked-restore }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $project = (Resolve-Path -LiteralPath $env:TARGET_PROJECT).Path
+          $output = Join-Path $env:RUNNER_TEMP 'performance-target'
+
+          $restoreArguments = @('restore', $project, '--runtime', $env:TARGET_RUNTIME)
+          if ([bool]::Parse($env:TARGET_LOCKED_RESTORE)) {
+            $restoreArguments += '--locked-mode'
+          }
+
+          & dotnet @restoreArguments
+          if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE." }
+
+          $eventSourceSupport = [bool]::Parse($env:TARGET_PUBLISH_AOT)
+          $publishArguments = @(
+            'publish', $project,
+            '--configuration', $env:TARGET_CONFIGURATION,
+            '--runtime', $env:TARGET_RUNTIME,
+            '--self-contained', $env:TARGET_SELF_CONTAINED,
+            '--output', $output,
+            '--no-restore',
+            "-p:PublishAot=$env:TARGET_PUBLISH_AOT",
+            "-p:PublishTrimmed=$env:TARGET_PUBLISH_TRIMMED",
+            "-p:EventSourceSupport=$eventSourceSupport"
+          )
+
+          & dotnet @publishArguments
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE." }
+
+      - name: Upload target application
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ runner.temp }}/performance-target
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0

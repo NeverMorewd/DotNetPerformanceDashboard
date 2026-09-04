@@ -31,8 +31,9 @@
     "publish": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["configuration", "selfContained", "nativeAot", "trimmed", "lockedRestore"],
+      "required": ["dotnetVersion", "configuration", "selfContained", "nativeAot", "trimmed", "lockedRestore"],
       "properties": {
+        "dotnetVersion": { "type": "string", "minLength": 1 },
         "configuration": { "type": "string", "minLength": 1 },
         "selfContained": { "type": "boolean" },
         "nativeAot": { "type": "boolean" },
@@ -77,8 +78,9 @@
     "platform": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["runtimeIdentifier", "executablePath"],
+      "required": ["buildRunner", "runtimeIdentifier", "executablePath"],
       "properties": {
+        "buildRunner": { "type": "string", "minLength": 1 },
         "runtimeIdentifier": { "type": "string", "minLength": 1 },
         "executablePath": { "type": "string", "minLength": 1 }
       }
